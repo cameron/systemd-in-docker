@@ -15,7 +15,8 @@ RUN apt-get -y upgrade && \
             build-essential \
             systemd \
             systemd-sysv \
-            procps
+            procps \
+						openssh-server
 
 # Configure systemd.
 #
@@ -79,11 +80,12 @@ RUN apt-get install -y nodejs
 
 RUN npm install twilio-cli -g
 
-ADD . /src
-RUN ln -s /src/monitor.service /etc/systemd/system/
 
+WORKDIR /root
+RUN mkdir .ssh && chmod 700 .ssh
+WORKDIR .ssh
+RUN touch authorized_keys && chmod 600 authorized_keys
+ADD id_rsa.pub /tmp/id_rsa.pub
+RUN cat /tmp/id_rsa.pub >> authorized_keys
 
-# As this image should run systemd, the default command will be changed to start
-# the init system. CMD will be preferred in favor of ENTRYPOINT, so one may
-# override it when creating the container to e.g. to run a bash console instead.
 CMD ["/lib/systemd/systemd"]
